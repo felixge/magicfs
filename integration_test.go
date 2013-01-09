@@ -2,7 +2,6 @@ package magicfs
 
 import (
 	"bytes"
-	"github.com/transloadit/magicfs"
 	"io"
 	"io/ioutil"
 	"net"
@@ -17,7 +16,7 @@ func (md5 *md5Processor) Process(input io.Reader) io.Reader {
 }
 
 func Test_Get(t *testing.T) {
-	fs := magicfs.New(http.Dir(fixturesDir))
+	fs := New(http.Dir(fixturesDir))
 	fs.Process("*.txt", &md5Processor{})
 
 	listener, err := net.Listen("tcp", "localhost:0")
@@ -45,6 +44,8 @@ func Test_Get(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	t.Log(res)
 
 	expected := "hello world"
 	if string(data) != expected {

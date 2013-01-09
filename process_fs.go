@@ -63,6 +63,8 @@ func (file *file) Stat() (os.FileInfo, error) {
 		return nil, fmt.Errorf("processFs: could not determine size: %s", err)
 	}
 
+	file.Seek(0, os.SEEK_SET)
+
 	return &processedStat{FileInfo: stat, size: size}, nil
 }
 
@@ -94,6 +96,13 @@ func (file *file) Seek(offset int64, whence int) (int64, error) {
 			}
 
 			return file.offset, nil
+		case os.SEEK_END:
+			n, err := io.Copy(ioutil.Discard, file)
+			if err != nil {
+				return n, err
+			}
+
+			return n, nil
 	}
 
 	return 0, fmt.Errorf(

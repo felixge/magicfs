@@ -179,6 +179,32 @@ func TestProcessFs_Seek_Cur(t *testing.T) {
 	}
 }
 
+// verify that Seek() with whence = os.SEEK_END works
+func TestProcessFs_Seek_End(t *testing.T) {
+	file := open("/digits.txt", t)
+
+	expectedOffset := int64(6)
+	if offset, err := file.Seek(0, os.SEEK_END); err != nil {
+		t.Fatal(err)
+	} else if offset != expectedOffset {
+		t.Fatalf("expected offset: %d, got: %d", expectedOffset, offset)
+	}
+
+	expectedOffset = int64(0)
+	if offset, err := file.Seek(0, os.SEEK_SET); err != nil {
+		t.Fatal(err)
+	} else if offset != expectedOffset {
+		t.Fatalf("expected offset: %d, got: %d", expectedOffset, offset)
+	}
+
+	expectedData := "123456"
+	if data, err := ioutil.ReadAll(file); err != nil {
+		t.Fatal(err)
+	} else if string(data) != expectedData {
+		t.Fatalf(`exepected: "%s", got: "%s"`, expectedData, data)
+	}
+}
+
 // verify that Stat() and Read() work together
 func TestProcessFs_Read_Stat_Read(t *testing.T) {
 	t.Logf("Skipping: Implementing Seek() first")
