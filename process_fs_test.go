@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"runtime"
 	"testing"
@@ -58,7 +59,7 @@ func open(path string, t *testing.T) http.File {
 func TestProcessFs_Read(t *testing.T) {
 	file := open("/digits.txt", t)
 
-	expectedData := "12345"
+	expectedData := "123456"
 	if data, err := ioutil.ReadAll(file); err != nil {
 		t.Fatalf("ReadAll: %s", err)
 	} else if string(data) != expectedData {
@@ -75,7 +76,7 @@ func TestProcessFs_Stat_Size(t *testing.T) {
 		t.Fatalf("Stat: %s", err)
 	}
 
-	expectedSize := int64(5)
+	expectedSize := int64(6)
 	size := stat.Size()
 	if size != expectedSize {
 		t.Fatalf("Wrong size: expected: %d, got: %d", expectedSize, size)
@@ -93,5 +94,118 @@ func TestProcessFs_Stat_IsDir(t *testing.T) {
 
 	if !stat.IsDir() {
 		t.Errorf("exected directory, got file")
+	}
+}
+
+// verify that Seek() with whence = os.SEEK_SET works
+func TestProcessFs_Seek_Set(t *testing.T) {
+	file := open("/digits.txt", t)
+
+	firstOffset := int64(2)
+	if offset, err := file.Seek(firstOffset, os.SEEK_SET); err != nil {
+		t.Fatalf("%s", err)
+	} else if offset != firstOffset {
+		t.Fatalf("expected offset: %d, got: %d", firstOffset, offset)
+	}
+
+	data := make([]byte, 2)
+	expectedData := "34"
+	if _, err := io.ReadFull(file, data); err != nil {
+		t.Fatalf("%s", err)
+	} else if string(data) != expectedData {
+		t.Fatalf(`exepected: "%s", got: "%s"`, expectedData, data)
+	}
+	
+	secondOffset := int64(5)
+	if offset, err := file.Seek(secondOffset, os.SEEK_SET); err != nil {
+		t.Fatalf("%s", err)
+	} else if offset != secondOffset {
+		t.Fatalf("expected offset: %d, got: %d", secondOffset, offset)
+	}
+
+	expectedData = "6"
+	if data, err := ioutil.ReadAll(file); err != nil {
+		t.Fatalf("%s", err)
+	} else if string(data) != expectedData {
+		t.Fatalf(`exepected: "%s", got: "%s"`, expectedData, data)
+	}
+}
+
+// verify that Seek() with whence = os.SEEK_CUR works
+func TestProcessFs_Seek_Cur(t *testing.T) {
+	file := open("/digits.txt", t)
+
+	firstOffset := int64(2)
+	if offset, err := file.Seek(firstOffset, os.SEEK_CUR); err != nil {
+		t.Fatalf("%s", err)
+	} else if offset != firstOffset {
+		t.Fatalf("expected offset: %d, got: %d", firstOffset, offset)
+	}
+
+	data := make([]byte, 2)
+	expectedData := "34"
+	if _, err := io.ReadFull(file, data); err != nil {
+		t.Fatalf("%s", err)
+	} else if string(data) != expectedData {
+		t.Fatalf(`exepected: "%s", got: "%s"`, expectedData, data)
+	}
+	
+	secondOffset := int64(1)
+	if offset, err := file.Seek(secondOffset, os.SEEK_CUR); err != nil {
+		t.Fatalf("%s", err)
+	} else if offset != 5 {
+		t.Fatalf("expected offset: %d, got: %d", 5, offset)
+	}
+
+	expectedData = "6"
+	if data, err := ioutil.ReadAll(file); err != nil {
+		t.Fatalf("%s", err)
+	} else if string(data) != expectedData {
+		t.Fatalf(`exepected: "%s", got: "%s"`, expectedData, data)
+	}
+
+	thirdOffset := int64(-2)
+	if offset, err := file.Seek(thirdOffset, os.SEEK_CUR); err != nil {
+		t.Fatalf("%s", err)
+	} else if offset != 4 {
+		t.Fatalf("expected offset: %d, got: %d", 4, offset)
+	}
+
+	expectedData = "56"
+	if data, err := ioutil.ReadAll(file); err != nil {
+		t.Fatalf("%s", err)
+	} else if string(data) != expectedData {
+		t.Fatalf(`exepected: "%s", got: "%s"`, expectedData, data)
+	}
+}
+
+// verify that Stat() and Read() work together
+func TestProcessFs_Read_Stat_Read(t *testing.T) {
+	t.Logf("Skipping: Implementing Seek() first")
+	return
+
+	file := open("/digits.txt", t)
+
+	buf := make([]byte, 2)
+	n, err := io.ReadFull(file, buf)
+	if err != nil {
+		t.Fatalf("Read #1: %s", err)
+	}
+
+	data := string(buf[:n])
+	expectedData := "12"
+	if data != expectedData {
+		t.Fatalf("Read #1: expected: %s, got: %s", expectedData, data)
+	}
+
+	stat, err := file.Stat()
+	if err != nil {
+		t.Fatalf("Stat: %s", err)
+	}
+
+	expectedSize := int64(5)
+	size := stat.Size()
+	if size != expectedSize {
+		t.Fatalf("Wrong size: expected: %d, got: %d", expectedSize, size)
 	}
 }
