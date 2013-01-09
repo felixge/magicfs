@@ -18,7 +18,9 @@ type digitReader struct {
 	r io.Reader
 }
 
-func newDigitReader(r io.Reader) io.Reader {
+type digitProcessor struct{}
+
+func (d *digitProcessor) Process(r io.Reader) io.Reader {
 	return &digitReader{r}
 }
 
@@ -42,7 +44,7 @@ func (r *digitReader) Read(buf []byte) (int, error) {
 
 func open(path string, t *testing.T) http.File {
 	parentFs := http.Dir(fixturesDir)
-	fs := NewProcessFs(parentFs, newDigitReader)
+	fs := NewProcessFs(parentFs, &digitProcessor{})
 
 	file, err := fs.Open(path)
 	if err != nil {

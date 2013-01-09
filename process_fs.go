@@ -8,7 +8,9 @@ import (
 	"os"
 )
 
-type Processor func(r io.Reader) io.Reader
+type Processor interface{
+	Process(r io.Reader) io.Reader
+}
 
 type processFs struct {
 	parent    http.FileSystem
@@ -33,7 +35,7 @@ func (stat *processedStat) Size() int64 {
 
 func (file *file) Read(buf []byte) (int, error) {
 	if file.reader == nil {
-		file.reader = file.processor(file.File)
+		file.reader = file.processor.Process(file.File)
 	}
 
 	return file.reader.Read(buf)
