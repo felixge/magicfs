@@ -69,10 +69,9 @@ func (file *ChainFile) Readdir(count int) ([]os.FileInfo, error) {
 			continue
 		}
 
-		dirs = append(dirs, otherDirs...)
+		dirs = removeDuplicates(append(dirs, otherDirs...))
 	}
-
-	return removeDuplicates(dirs), nil
+	return dirs, nil
 }
 
 func removeDuplicates(stats []os.FileInfo) []os.FileInfo {
