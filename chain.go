@@ -19,7 +19,7 @@ type ChainFs struct {
 // file which it then returns wrapped in a ChainFile. If no fs in the chain can
 // open the given path, the last error is returned.
 //
-// BUG(felixge) Only ENOENT errors should advance the chain, other errors
+// BUG(felixge): Only ENOENT errors should advance the chain, other errors
 // should be returned right away. Otherwise Open() and Readdir() can get out
 // of sync.
 func (chainFs *ChainFs) Open(path string) (http.File, error) {
