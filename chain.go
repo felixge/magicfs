@@ -15,13 +15,13 @@ type ChainFs struct {
 	chain []http.FileSystem
 }
 
-// Open calls Open() on every fs in the chain until it can succesfully open a
-// file which it then returns wrapped in a ChainFile. If no fs in the chain can
-// open the given path, the last error is returned.
-//
 // BUG(felixge): Only ENOENT errors should advance the chain, other errors
 // should be returned right away. Otherwise Open() and Readdir() can get out
 // of sync.
+
+// Open calls Open() on every fs in the chain until it can succesfully open a
+// file which it then returns wrapped in a ChainFile. If no fs in the chain can
+// open the given path, the last error is returned.
 func (chainFs *ChainFs) Open(path string) (http.File, error) {
 	var err error
 	for i, fs := range chainFs.chain {
